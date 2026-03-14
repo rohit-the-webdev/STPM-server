@@ -1,12 +1,7 @@
-const router = require("express").Router();
-const { register, login, me, updateProfile } = require("../controllers/auth.controller");
+require("dotenv").config();
+const app = require("./app");
+const connectDB = require("./config/db");
 
-const authMiddleware = require("../middleware/auth.middleware");
+connectDB();
 
-router.post("/register", register);
-router.post("/login", login);
-router.get("/me", authMiddleware, me);
-router.put("/update-profile", authMiddleware, updateProfile);
-
-module.exports = router;
-
+module.exports = app;
