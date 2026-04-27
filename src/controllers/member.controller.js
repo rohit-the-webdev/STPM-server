@@ -180,7 +180,7 @@ exports.getProjectMembers = async (req, res, next) => {
 
     const members = await ProjectMember.find({ projectId }).populate(
       "userId",
-      "name email"
+      "name email profilePhoto designation"
     );
 
     res.json({
@@ -188,6 +188,97 @@ exports.getProjectMembers = async (req, res, next) => {
       count: members.length,
       members,
     });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.updateMemberRoleByUserId = async (req, res, next) => {
+  try {
+    const { id: projectId, userId } = req.params;
+    const { role } = req.body;
+
+    if (!role) {
+      return res.status(400).json({ message: "Role is required" });
+    }
+
+    const allowedRoles = ["manager", "member"]; // Owner cannot be set this way usually
+    if (!allowedRoles.includes(role)) {
+      return res.status(400).json({ message: "Invalid role value" });
+    }
+
+    // Check my permissions
+    const myMembership = await ProjectMember.findOne({ projectId, userId: req.user._id });
+    if (!myMembership || myMembership.role !== "owner") {
+      return res.status(403).json({ message: "Only owners can change roles" });
+    }
+
+    // Check member exists
+    const member = await ProjectMember.findOne({ projectId, userId });
+    if (!member) {
+      return res.status(404).json({ message: "Member not found in this project" });
+    }
+
+    if (member.role === "owner") {
+      return res.status(400).json({ message: "Cannot change owner role this way" });
+    }
+
+    member.role = role;
+    await member.save();
+
+    await ActivityLog.create({
+      projectId,
+      performedBy: req.user._id,
+      action: `Member ${userId} role changed to ${role}`
+    });
+
+    return res.json({ message: "Member role updated", member });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.removeMemberByUserId = async (req, res, next) => {
+  try {
+    const { id: projectId, userId } = req.params;
+
+    // Check my permissions
+    const myMembership = await ProjectMember.findOne({ projectId, userId: req.user._id });
+    if (!myMembership) {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    // Check member exists
+    const member = await ProjectMember.findOne({ projectId, userId });
+    if (!member) {
+      return res.status(404).json({ message: "Member not found in this project" });
+    }
+
+    // Permissions logic
+    if (myMembership.role === "owner") {
+      // Owner can remove anyone except themselves (they must leave/delete)
+      if (userId === req.user._id.toString()) {
+        return res.status(400).json({ message: "Owner cannot remove themselves. Use leave or delete." });
+      }
+    } else if (myMembership.role === "manager") {
+      // Manager can remove members but not owners or other managers (or just not owners?)
+      // User request says: "Add/remove members (except Owner). Cannot change roles or ownership"
+      if (member.role === "owner") {
+        return res.status(403).json({ message: "Managers cannot remove the owner" });
+      }
+    } else {
+      return res.status(403).json({ message: "Only owners and managers can remove members" });
+    }
+
+    await ProjectMember.deleteOne({ projectId, userId });
+
+    await ActivityLog.create({
+      projectId,
+      performedBy: req.user._id,
+      action: `Member ${userId} removed from project`
+    });
+
+    return res.json({ message: "Member removed successfully" });
   } catch (err) {
     next(err);
   }

@@ -8,7 +8,7 @@ const userSchema = new mongoose.Schema(
     role: { type: String, default: "user" },
     profilePhoto: {
       type: String,
-      default: "https://ui-avatars.com/api/?name=User&background=random"
+      default: ""
     },
     designation: {
       type: String,

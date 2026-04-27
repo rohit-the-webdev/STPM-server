@@ -9,6 +9,7 @@ const commentRoutes = require("./routes/comment.routes");
 const notificationRoutes = require("./routes/notification.routes");
 const activityRoutes = require("./routes/activity.routes");
 const dashboardRoutes = require("./routes/dashboard.routes");
+const searchRoutes = require("./routes/search.routes");
 
 const errorMiddleware = require("./middleware/error.middleware");
 
@@ -23,11 +24,7 @@ console.log({
   activityRoutes,
 });
 
-app.use(cors({
-  origin: "https://stpm-client.vercel.app",
-  credentials: true
-}));
-
+app.use(cors());
 app.use(express.json());
 app.use("/uploads", express.static("uploads"));
 
@@ -40,6 +37,7 @@ app.use("/api/comments", commentRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/activity", activityRoutes);
 app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/search", searchRoutes);
 
 // error handler
 app.use(errorMiddleware);

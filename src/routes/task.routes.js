@@ -6,6 +6,7 @@ const upload = require("../middleware/upload.middleware");
 
 router.post("/", authMiddleware, taskController.createTask);
 router.get("/", authMiddleware, taskController.getTasks);
+router.get("/all", authMiddleware, taskController.getAllUserTasks);
 router.put("/:id", authMiddleware, taskController.updateTask);
 router.delete("/:id", authMiddleware, taskController.deleteTask);
 

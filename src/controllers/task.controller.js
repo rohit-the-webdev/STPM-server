@@ -122,6 +122,34 @@ exports.getTasks = async (req, res, next) => {
   }
 };
 
+exports.getAllUserTasks = async (req, res, next) => {
+  try {
+    // 1. Get all project IDs where user is a member
+    const memberships = await ProjectMember.find({ userId: req.user._id }).select("projectId");
+    const projectIds = memberships.map(m => m.projectId);
+
+    // 2. Fetch all tasks for those projects
+    // We populate assignedTo for user info and projectId for project context
+    const tasks = await Task.find({
+      $or: [
+        { projectId: { $in: projectIds } },
+        { assignedTo: req.user._id }
+      ]
+    })
+      .populate("assignedTo", "name email profilePhoto")
+      .populate("projectId", "name")
+      .sort({ dueDate: 1 });
+
+    return res.json({
+      message: "All user tasks fetched",
+      count: tasks.length,
+      tasks,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 exports.updateTask = async (req, res, next) => {
   try {
     const taskId = req.params.id;
