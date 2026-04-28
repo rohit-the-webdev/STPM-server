@@ -1,3 +1,9 @@
-const app = require("../src/app");
+// /api/index.js
 
-module.exports = app;
+const connectDB = require("../config/db");
+const app = require("../app");
+
+module.exports = async (req, res) => {
+  await connectDB();
+  return app(req, res);
+};
