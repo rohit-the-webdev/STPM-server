@@ -23,7 +23,13 @@ console.log({
   notificationRoutes,
   activityRoutes,
 });
+const cors = require("cors");
 
+app.use(cors({
+  origin: "https://stpm-client.vercel.app",
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true
+}));
 app.use(cors());
 app.use(express.json());
 app.use("/uploads", express.static("uploads"));
