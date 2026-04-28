@@ -13,6 +13,7 @@ const searchRoutes = require("./routes/search.routes");
 
 const errorMiddleware = require("./middleware/error.middleware");
 
+require("dotenv").config();
 const app = express();
 console.log({
   authRoutes,
@@ -24,7 +25,14 @@ console.log({
   activityRoutes,
 });
 
-app.use(cors());
+app.use(
+  cors({
+    origin: ["https://stpm-client.vercel.app", "http://localhost:5173"],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    credentials: true,
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 app.options("*", cors());
 
 app.use(express.json());
