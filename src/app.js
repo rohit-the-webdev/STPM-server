@@ -25,15 +25,20 @@ console.log({
   activityRoutes,
 });
 
-app.use(
-  cors({
-    origin: ["https://stpm-client.vercel.app", "http://localhost:5173"],
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    credentials: true,
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
-app.options("*", cors());
+app.use(cors({
+  origin: function (origin, callback) {
+    const allowed = [
+      "https://stpm-client.vercel.app",
+      "http://localhost:5173"
+    ];
+    if (!origin || allowed.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true
+}));
 
 app.use(express.json());
 app.use("/uploads", express.static("uploads"));
